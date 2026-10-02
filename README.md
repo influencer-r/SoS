@@ -203,4 +203,3 @@ When deploying or testing with the live Helio / MoonPay dashboard:
    https://abc1234.ngrok-free.app/api/webhooks/payment
    ```
 4. Copy the webhook signing secret from the gateway dashboard and paste it into `.env.local` as `PAYMENT_GATEWAY_WEBHOOK_SECRET`.
-# SoS

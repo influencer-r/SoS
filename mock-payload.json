@@ -1,0 +1,19 @@
+{
+  "event": "PAYMENT_COMPLETED",
+  "paymentStatus": "completed",
+  "orderId": "HH-ORD-TEST-9921",
+  "orderTitle": "Haven House - Luxury Estate Reservation Deposit",
+  "customerEmail": "buyer@havenhouse.com",
+  "fiatAmount": 250.00,
+  "fiatCurrency": "USD",
+  "cryptoAmount": 250.00,
+  "cryptoCurrency": "USDC",
+  "txHash": "0xa38f71c48e83b129759c8de4bb91f24d2994498308cf2bda62b2c15112f458e0",
+  "recipientWallet": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+  "timestamp": "2026-10-01T20:00:00.000Z",
+  "metadata": {
+    "buyerEmail": "buyer@havenhouse.com",
+    "havenHouseProperty": "Haven House Luxury Reserve #4",
+    "gateway": "Helio / MoonPay"
+  }
+}

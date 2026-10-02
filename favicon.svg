@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Haven House mark: roofline over the horizon -->
+  <rect width="64" height="64" rx="9" fill="#2C3F30"/>
+  <path d="M32 11 L58 33 L58 41 L32 20 L6 41 L6 33 Z" fill="#F4F0E6"/>
+  <rect x="14" y="47" width="36" height="6" fill="#B97C4B"/>
+</svg>
