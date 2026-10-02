@@ -11,19 +11,13 @@
      ⚠️ CONFIGURE: Replace placeholder values with your real keys
      ───────────────────────────────────────────────────────────── */
 
-  // ⚠️️ CONFIGURE LINE 15: TODO: YOUR_ACTION_HERE (Line 15) — Client USDC/USDT settlement wallet address
-  var CLIENT_WALLET = '0x742d35Cc6634C0532925a3b844Bc454e4438f44e';
+  // NOWPayments live payment link — https://nowpayments.io
+  var NOWPAYMENTS_LINK = 'https://nowpayments.io/payment/?iid=5340227667';
 
-  // ⚠️️ CONFIGURE LINE 18: TODO: YOUR_ACTION_HERE (Line 18) — Helio Paylink ID from https://app.hel.io
-  var HELIO_PAYLINK_ID = '64fa7980ef550f2694b281f9';
-
-  // ⚠️️ CONFIGURE LINE 21: TODO: YOUR_ACTION_HERE (Line 21) — MoonPay publishable API key from https://dashboard.moonpay.com
-  var MOONPAY_API_KEY = 'pk_test_sample_moonpay_key';
-
-  // ⚠️️ CONFIGURE LINE 24: TODO: YOUR_ACTION_HERE (Line 24) — Your Next.js webhook endpoint (for Resend receipt dispatch)
+  // ⚠️️ CONFIGURE: Your Next.js webhook endpoint (for Resend receipt dispatch)
   var WEBHOOK_URL = 'http://localhost:3001/api/webhooks/payment';
 
-  // ⚠️️ CONFIGURE LINE 27: TODO: YOUR_ACTION_HERE (Line 27) — Dev webhook secret (must match PAYMENT_GATEWAY_WEBHOOK_SECRET in .env.local)
+  // ⚠️️ CONFIGURE: Dev webhook secret (must match PAYMENT_GATEWAY_WEBHOOK_SECRET in .env.local)
   var WEBHOOK_SECRET = 'hh_sandbox_whsec_dev_testing_123456';
 
   /* ─────────────────────────────────────────────────────────────
@@ -121,13 +115,13 @@
     open: false,
     email: '',
     emailConfirmed: false,
-    devMode: true,          // starts in sandbox simulation mode
-    gateway: 'helio',
+    devMode: true,          // starts in sandbox simulation mode — set false for live
+    gateway: 'nowpayments',
     processing: false,
     result: null,
     error: '',
-    amount: 25,
-    title: 'Haven House — 5 Entries ($25 USD)',
+    amount: 150,
+    title: 'Haven House — Deposit & Verification',
     onSuccess: null,
     onClose: null
   };
@@ -143,27 +137,9 @@
     return out;
   }
 
-  function shortWallet(addr) {
-    return addr.slice(0, 8) + '...' + addr.slice(-6);
-  }
-
-  function helioUrl() {
-    return 'https://embed.hel.io/pay/' + HELIO_PAYLINK_ID +
-      '?recipient=' + encodeURIComponent(CLIENT_WALLET) +
-      '&customerEmail=' + encodeURIComponent(state.email) +
-      '&fiatAmount=' + state.amount +
-      '&currency=USDC&paymentMethod=card&theme=dark';
-  }
-
-  function moonpayUrl() {
-    return 'https://buy-sandbox.moonpay.com' +
-      '?apiKey=' + encodeURIComponent(MOONPAY_API_KEY) +
-      '&currencyCode=usdc' +
-      '&walletAddress=' + encodeURIComponent(CLIENT_WALLET) +
-      '&email=' + encodeURIComponent(state.email) +
-      '&baseCurrencyCode=usd' +
-      '&baseCurrencyAmount=' + state.amount +
-      '&theme=dark';
+  function nowpaymentsUrl() {
+    // Append the customer email as a query param for tracking
+    return NOWPAYMENTS_LINK + '&customerEmail=' + encodeURIComponent(state.email);
   }
 
   /* ─────────────────────────────────────────────────────────────
@@ -305,21 +281,16 @@
       ].join('');
     }
 
-    /* ── Step 2b: Live embedded widget ── */
-    var iframeSrc = state.gateway === 'helio' ? helioUrl() : moonpayUrl();
+    /* ── Step 2b: Live NOWPayments widget ── */
     return [
       header(),
       orderBanner(),
       modeBar(devDot, modeLabel),
       emailBar,
-      '<div class="hh-tabs">',
-        '<button class="hh-tab ' + (state.gateway === 'helio' ? 'active' : '') + '" data-gw="helio">Helio Pay (Card → USDC)</button>',
-        '<button class="hh-tab ' + (state.gateway === 'moonpay' ? 'active' : '') + '" data-gw="moonpay">MoonPay Widget</button>',
-      '</div>',
       '<div class="hh-iframe-box">',
-        '<iframe src="' + iframeSrc + '" allow="camera;microphone;payment;usb;ethereum" title="Secure Web3 Checkout"></iframe>',
+        '<iframe src="' + nowpaymentsUrl() + '" allow="camera;microphone;payment" title="NOWPayments Secure Checkout"></iframe>',
       '</div>',
-      '<div class="hh-security">🔒 256-Bit Encrypted Web3 Checkout · Settles directly to client USDC vault</div>'
+      '<div class="hh-security">🔒 Secured by NOWPayments · 300+ Cryptocurrencies Accepted · Direct Wallet Settlement</div>'
     ].join('');
   }
 
@@ -337,8 +308,7 @@
       '<div class="hh-order">',
         '<div class="hh-row"><span class="hh-lbl">Item</span><span class="hh-val">' + escHtml(state.title) + '</span></div>',
         '<div class="hh-row"><span class="hh-lbl">Amount (Card / Fiat)</span><span class="hh-price">$' + state.amount.toFixed(2) + ' USD</span></div>',
-        '<div class="hh-row"><span class="hh-lbl">Settled in Vault</span><span class="hh-crypto">' + state.amount.toFixed(2) + ' USDC — Direct</span></div>',
-        '<div class="hh-wallet"><span>Client Vault:</span><code>' + shortWallet(CLIENT_WALLET) + '</code></div>',
+        '<div class="hh-row"><span class="hh-lbl">Settled In</span><span class="hh-crypto">Crypto — via NOWPayments</span></div>',
       '</div>'
     ].join('');
   }

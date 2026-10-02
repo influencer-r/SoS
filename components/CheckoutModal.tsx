@@ -6,14 +6,8 @@ import React, { useState, useEffect } from "react";
 // HAVEN HOUSE - WEB3 EMBEDDED CARD-TO-CRYPTO CHECKOUT COMPONENT
 // ==============================================================================
 
-// ⚠️️ CONFIGURE LINE 10: TODO: YOUR_ACTION_HERE (Line 10) - Override default client crypto wallet address if not using .env variable
-const FALLBACK_CLIENT_WALLET = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e";
-
-// ⚠️️ CONFIGURE LINE 13: TODO: YOUR_ACTION_HERE (Line 13) - Override default Helio Paylink ID if not using .env variable
-const FALLBACK_HELIO_PAYLINK_ID = "64fa7980ef550f2694b281f9";
-
-// ⚠️️ CONFIGURE LINE 16: TODO: YOUR_ACTION_HERE (Line 16) - Override default MoonPay publishable key if not using .env variable
-const FALLBACK_MOONPAY_KEY = "pk_test_sample_moonpay_key";
+// NOWPayments live payment link
+const NOWPAYMENTS_LINK = "https://nowpayments.io/payment/?iid=5340227667";
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -35,20 +29,15 @@ export default function CheckoutModal({
   const [emailError, setEmailError] = useState<string>("");
   const [isEmailConfirmed, setIsEmailConfirmed] = useState<boolean>(false);
 
-  // Gateway & mode toggles
-  const [activeGateway, setActiveGateway] = useState<"helio" | "moonpay">("helio");
-  const [isDevSimulationMode, setIsDevSimulationMode] = useState<boolean>(true); // Defaults to true for immediate local testing
+  // Mode toggles
+  const [isDevSimulationMode, setIsDevSimulationMode] = useState<boolean>(true); // set false for live
   const [isProcessingSimulation, setIsProcessingSimulation] = useState<boolean>(false);
   const [simulationResult, setSimulationResult] = useState<any | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>("");
 
-  // Resolving Environment Configurations
-  const clientWallet =
-    process.env.NEXT_PUBLIC_CLIENT_WALLET_ADDRESS || FALLBACK_CLIENT_WALLET;
-  const helioPaylinkId =
-    process.env.NEXT_PUBLIC_HELIO_PAYLINK_ID || FALLBACK_HELIO_PAYLINK_ID;
-  const moonpayApiKey =
-    process.env.NEXT_PUBLIC_MOONPAY_API_KEY || FALLBACK_MOONPAY_KEY;
+  // Build NOWPayments URL with customer email appended for tracking
+  const getNowPaymentsUrl = () =>
+    `${NOWPAYMENTS_LINK}&customerEmail=${encodeURIComponent(customerEmail)}`;
 
   // Reset modal state when closed
   useEffect(() => {
@@ -75,36 +64,6 @@ export default function CheckoutModal({
     setIsEmailConfirmed(true);
   };
 
-  // Build embedded Helio Pay Checkout URL
-  // Parameters ensure card payment in USD settles directly to USDC in the client's wallet
-  const getHelioCheckoutUrl = () => {
-    const params = new URLSearchParams({
-      paylinkId: helioPaylinkId,
-      recipient: clientWallet,
-      customerEmail: encodeURIComponent(customerEmail),
-      fiatAmount: amountUsd.toString(),
-      currency: "USDC",
-      paymentMethod: "card",
-      theme: "dark",
-    });
-    return `https://embed.hel.io/pay/${helioPaylinkId}?${params.toString()}`;
-  };
-
-  // Build embedded MoonPay Widget URL
-  const getMoonPayCheckoutUrl = () => {
-    const params = new URLSearchParams({
-      apiKey: moonpayApiKey,
-      currencyCode: "usdc",
-      walletAddress: clientWallet,
-      email: encodeURIComponent(customerEmail),
-      baseCurrencyCode: "usd",
-      baseCurrencyAmount: amountUsd.toString(),
-      theme: "dark",
-      colorCode: "%23d4af37",
-    });
-    return `https://buy-sandbox.moonpay.com?${params.toString()}`;
-  };
-
   // Dev Testing Mode: Simulate successful card-to-crypto payment & trigger webhook directly
   const handleSimulatePayment = async () => {
     setIsProcessingSimulation(true);
@@ -127,7 +86,7 @@ export default function CheckoutModal({
       cryptoAmount: amountUsd,
       cryptoCurrency: "USDC",
       txHash: mockTxHash,
-      recipientWallet: clientWallet,
+      recipientWallet: "nowpayments",
       orderId: mockOrderId,
       orderTitle: orderTitle,
       timestamp: new Date().toISOString(),
@@ -200,15 +159,9 @@ export default function CheckoutModal({
             <span className="haven-order-price">${amountUsd.toFixed(2)} USD</span>
           </div>
           <div className="haven-order-row">
-            <span className="haven-order-label">Settlement to Client</span>
+            <span className="haven-order-label">Payment Gateway</span>
             <span className="haven-crypto-badge">
-              {amountUsd.toFixed(2)} USDC (Direct to Wallet)
-            </span>
-          </div>
-          <div className="haven-wallet-row">
-            <span className="haven-wallet-label">Client Vault:</span>
-            <span className="haven-wallet-address" title={clientWallet}>
-              {clientWallet.slice(0, 8)}...{clientWallet.slice(-6)}
+              NOWPayments · 300+ Cryptos Accepted
             </span>
           </div>
         </div>
@@ -371,52 +324,21 @@ export default function CheckoutModal({
                 )}
               </div>
             ) : (
-              /* LIVE WEB3 EMBEDDED WIDGET (Helio Pay / MoonPay) */
+              /* LIVE NOWPAYMENTS EMBEDDED WIDGET */
               <div className="haven-widget-wrapper">
-                {/* Gateway selector tabs */}
-                <div className="haven-gateway-tabs">
-                  <button
-                    type="button"
-                    onClick={() => setActiveGateway("helio")}
-                    className={`haven-tab-btn ${
-                      activeGateway === "helio" ? "haven-tab-active" : ""
-                    }`}
-                  >
-                    Helio Pay (Direct Card to USDC)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveGateway("moonpay")}
-                    className={`haven-tab-btn ${
-                      activeGateway === "moonpay" ? "haven-tab-active" : ""
-                    }`}
-                  >
-                    MoonPay Widget
-                  </button>
-                </div>
-
-                {/* Embedded Widget Iframe */}
+                {/* Embedded NOWPayments Iframe */}
                 <div className="haven-iframe-box">
-                  {activeGateway === "helio" ? (
-                    <iframe
-                      title="Helio Pay Card to Crypto"
-                      src={getHelioCheckoutUrl()}
-                      className="haven-embedded-frame"
-                      allow="camera; microphone; payment; usb; ethereum"
-                    />
-                  ) : (
-                    <iframe
-                      title="MoonPay Web SDK"
-                      src={getMoonPayCheckoutUrl()}
-                      className="haven-embedded-frame"
-                      allow="camera; microphone; payment; usb; ethereum"
-                    />
-                  )}
+                  <iframe
+                    title="NOWPayments Secure Checkout"
+                    src={getNowPaymentsUrl()}
+                    className="haven-embedded-frame"
+                    allow="camera; microphone; payment"
+                  />
                 </div>
 
                 <div className="haven-security-footer">
-                  <span>🔒 256-Bit Encrypted Web3 Checkout</span>
-                  <span>• Settles directly to client USDC vault</span>
+                  <span>🔒 Secured by NOWPayments</span>
+                  <span>• 300+ Cryptocurrencies Accepted • Direct Wallet Settlement</span>
                 </div>
               </div>
             )}
